@@ -35,7 +35,7 @@ const initializeAgent = async () => {
         [createSwapTool()],
         summarizeAgent,
         "anthropic",
-        "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",
+        "",
       );
     } catch (error) {
       console.error("Error initializing agent:", error);
