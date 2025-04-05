@@ -15,15 +15,15 @@ const initializeAgent = async () => {
     try {
       const actionAgentPersonality = createContextFromJson(constructorAgentConfig);
       const summarizeAgentPersonality = createContextFromJson(summarizeAgentConfig);
+      const apiKey = process.env.ANTHROPIC_API_KEY;
 
-      const anthropicApiKey = process.env.ANTHROPIC_API_KEY;
       // Create the summarize agent
       const summarizeAgent = new SummarizeAgentBrain(
         "1inch AI Assistant",
         summarizeAgentPersonality,
         [],
         "anthropic",
-        anthropicApiKey || "",
+        apiKey || "",
         "",
       );
 
@@ -34,7 +34,7 @@ const initializeAgent = async () => {
         [createSwapTool()],
         summarizeAgent,
         "anthropic",
-        anthropicApiKey || "",
+        apiKey || "",
       );
     } catch (error) {
       console.error("Error initializing agent:", error);
