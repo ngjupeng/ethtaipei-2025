@@ -68,6 +68,7 @@ const Chat = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [privateKey, setPrivateKey] = useState<`0x${string}` | null>(null);
   const [usdcBalance, setUsdcBalance] = useState<string>("0.0");
+  const [currentBlockNumber, setCurrentBlockNumber] = useState<string | null>(null);
 
   // Swap state
   const [tokens, setTokens] = useState<Record<string, Token>>({});
@@ -88,6 +89,42 @@ const Chat = () => {
 
   const [accountTokenCount, setAccountTokenCount] = useState<number>(0);
   const [accountNftCount, setAccountNftCount] = useState<number>(0);
+
+  useEffect(() => {
+    // Fetch current block number
+    const fetchBlockNumber = async () => {
+      try {
+        const response = await axios.post(
+          "https://base-mainnet.nodit.io/B7GgY9rcHogCnmT68P4VAdRzCvAP1lgK",
+          {
+            jsonrpc: "2.0",
+            method: "eth_blockNumber",
+            params: [],
+            id: 1,
+          },
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          },
+        );
+
+        if (response.data && response.data.result) {
+          // Convert hex to decimal
+          const blockNumberDecimal = parseInt(response.data.result, 16).toString();
+          setCurrentBlockNumber(blockNumberDecimal);
+        }
+      } catch (error) {
+        console.error("Error fetching block number:", error);
+      }
+    };
+
+    // Fetch block number initially and then every 15 seconds
+    fetchBlockNumber();
+    const intervalId = setInterval(fetchBlockNumber, 15000);
+
+    return () => clearInterval(intervalId);
+  }, []);
 
   useEffect(() => {
     if (smartAccount) {
@@ -868,14 +905,14 @@ const Chat = () => {
   return (
     <div className="flex flex-col h-screen bg-gray-100 text-black">
       <div className="bg-blue-600 text-white p-4 shadow-md flex justify-between items-center">
-        <h1 className="text-xl font-bold">Enjoy 1inch AI Assistant with Nodit + Circle</h1>
+        <h1 className="text-xl font-bold">Q3x</h1>
       </div>
 
       {/* Account Details Section */}
       <div className="bg-white p-4 shadow-md mb-4">
-        <div className="p-20 bg-red-300" onClick={handletransfer}>
+        {/* <div className="p-20 bg-red-300" onClick={handletransfer}>
           TRANSFER
-        </div>
+        </div> */}
         <div className="max-w-6xl mx-auto">
           <h2 className="text-lg font-semibold mb-2">Account Details</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -898,6 +935,18 @@ const Chat = () => {
             <div className="bg-gray-50 p-3 rounded">
               <p className="text-sm text-gray-500">NFTs Owned</p>
               <p className="font-semibold">{accountNftCount}</p>
+            </div>
+            <div className="bg-gray-50 p-3 rounded">
+              <p className="text-sm text-gray-500">Current Block</p>
+              <div className="flex items-center">
+                <p className="font-semibold">{currentBlockNumber || "Loading..."}</p>
+                {currentBlockNumber && (
+                  <div
+                    className="ml-2 w-2 h-2 bg-green-500 rounded-full animate-pulse"
+                    title="Live block updates"
+                  ></div>
+                )}
+              </div>
             </div>
             <div className="mt-3 bg-blue-50 border border-blue-200 p-3 rounded-lg flex items-center">
               <svg className="w-5 h-5 text-blue-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
