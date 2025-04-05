@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(request: NextRequest, { params }: { params: { path: string[] } }) {
+export async function GET(request: NextRequest, { params }: any) {
   const path = params.path.join("/");
   const searchParams = request.nextUrl.searchParams;
   const queryString = searchParams.toString();

@@ -755,8 +755,8 @@ const Chat = () => {
       value: MAX_GAS_USDC,
     });
 
-    const wrappedPermitSignature = await smartAccount?.signTypedData(permitData);
-    const { signature: permitSignature } = parseErc6492Signature(wrappedPermitSignature);
+    const wrappedPermitSignature = await smartAccount?.signTypedData(permitData as any);
+    const { signature: permitSignature } = parseErc6492Signature(wrappedPermitSignature as any);
 
     console.log("Permit signature:", permitSignature);
 
@@ -794,12 +794,12 @@ const Chat = () => {
       transport: http("https://api.pimlico.io/v2/8453/rpc?apikey=pim_bX6KsbhcEy33vSXdhx3YsX"),
     });
 
-    const { standard: fees } = await pimlicoBundlerClient.request({
-      method: "pimlico_getUserOperationGasPrice",
-    });
+    const { standard: fees } = (await pimlicoBundlerClient.request({
+      method: "pimlico_getUserOperationGasPrice" as any,
+    })) as { standard: { maxFeePerGas: number; maxPriorityFeePerGas: number } };
 
-    const maxFeePerGas = hexToBigInt(fees.maxFeePerGas);
-    const maxPriorityFeePerGas = hexToBigInt(fees.maxPriorityFeePerGas);
+    const maxFeePerGas = hexToBigInt(fees.maxFeePerGas as any);
+    const maxPriorityFeePerGas = hexToBigInt(fees.maxPriorityFeePerGas as any);
 
     const {
       callGasLimit,

@@ -324,8 +324,8 @@ const Home: NextPage = () => {
       value: MAX_GAS_USDC,
     });
 
-    const wrappedPermitSignature = await smartAccount?.signTypedData(permitData);
-    const { signature: permitSignature } = parseErc6492Signature(wrappedPermitSignature);
+    const wrappedPermitSignature = await smartAccount?.signTypedData(permitData as any);
+    const { signature: permitSignature } = parseErc6492Signature(wrappedPermitSignature as any);
 
     console.log("Permit signature:", permitSignature);
 
