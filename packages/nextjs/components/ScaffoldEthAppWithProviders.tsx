@@ -27,9 +27,7 @@ const ScaffoldEthApp = ({ children }: { children: React.ReactNode }) => {
   return (
     <>
       <div className={`flex flex-col min-h-screen `}>
-        <Header />
         <main className="relative flex flex-col flex-1">{children}</main>
-        <Footer />
       </div>
       <Toaster />
     </>
@@ -71,43 +69,8 @@ export const ScaffoldEthAppWithProviders = ({ children }: { children: React.Reac
           theme={mounted ? (isDarkMode ? darkTheme() : lightTheme()) : lightTheme()}
         >
           <PermissionlessProvider capabilities={capabilities}>
-            <DynamicContextProvider
-              settings={{
-                // Find your environment id at https://app.dynamic.xyz/dashboard/developer/api
-                environmentId: "c97b352f-a576-4b63-bfe3-ed793c1e2ef2",
-                walletConnectors: [EthereumWalletConnectors],
-              }}
-            >
-              <DynamicWagmiConnector>
-                <AuthCoreContextProvider
-                  options={{
-                    projectId: "9ae6af3e-1582-4f35-891e-b00395c935f0",
-                    clientKey: "c2pE7GIHe5A8qkWV2BwaFKxve0XxKHSzvvctmmth",
-                    appId: "f1348e30-dbcb-4532-9a18-ae60a27588ed",
-                    erc4337: {
-                      // The name of the smart account you'd like to use
-                      // SIMPLE, BICONOMY, LIGHT, or CYBERCONNECT
-                      name: "SIMPLE",
-                      // The version of the smart account you're using
-                      // 1.0.0 for everything except Biconomy, which can be either 1.0.0 or 2.0.0
-                      version: "1.0.0",
-                    },
-                    wallet: {
-                      // Set to false to remove the embedded wallet modal
-                      visible: true,
-                      customStyle: {
-                        // Locks the chain selector to Base Sepolia
-                        supportChains: [BaseSepolia],
-                      },
-                    },
-                  }}
-                >
-                  {" "}
-                  <DynamicWidget />
-                  <ScaffoldEthApp>{children}</ScaffoldEthApp>
-                </AuthCoreContextProvider>
-              </DynamicWagmiConnector>
-            </DynamicContextProvider>
+            {" "}
+            <ScaffoldEthApp>{children}</ScaffoldEthApp>
           </PermissionlessProvider>
         </RainbowKitProvider>
       </QueryClientProvider>

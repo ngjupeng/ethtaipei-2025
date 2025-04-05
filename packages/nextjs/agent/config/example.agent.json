@@ -1,0 +1,13 @@
+{
+  "name": "Your Agent name",
+  "bio": "Your AI Agent Bio",
+  "lore": ["Some lore of your AI Agent 1", "Some lore of your AI Agent 1"],
+  "objectives": [
+    "first objective that your AI Agent need to follow",
+    "second objective that your AI Agent need to follow"
+  ],
+  "knowledge": [
+    "first knowledge of your AI Agent",
+    "second knowledge of your AI Agent"
+  ]
+}
