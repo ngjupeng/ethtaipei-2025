@@ -4,6 +4,11 @@ import { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import type { NextPage } from "next";
 import { createSmartAccountClient } from "permissionless";
+import {
+  ToEcdsaKernelSmartAccountReturnType,
+  toEcdsaKernelSmartAccount,
+  toSimpleSmartAccount,
+} from "permissionless/accounts";
 import { createPimlicoClient } from "permissionless/clients/pimlico";
 import {
   createPublicClient,
@@ -140,18 +145,79 @@ const Home: NextPage = () => {
     });
 
     // Register a credential (ie. passkey).
-    const credential = await createWebAuthnCredential({ name: "Wallet" });
+    // const credential = await createWebAuthnCredential({ name: "Wallet" });
 
     // Create a WebAuthn owner account from the credential.
-    const owner = toWebAuthnAccount({ credential });
+    // const owner = toWebAuthnAccount({ credential });
 
-    const account = await toCoinbaseSmartAccount({
+    // const account = await toCoinbaseSmartAccount({
+    //   client,
+    //   owners: [owner],
+    //   entryPoint: {
+    //     address: entryPoint07Address,
+    //     version: "0.7",
+    //   },
+
+    const privateKey = generatePrivateKey();
+    const owner = privateKeyToAccount(privateKey);
+
+    // const account = await toSimpleSmartAccount({
+    //   owner,
+    //   client: client,
+    //   entryPoint: {
+    //     address: entryPoint07Address,
+    //     version: "0.7",
+    //   },
+    // });
+
+    const account = await toEcdsaKernelSmartAccount({
       client,
       owners: [owner],
+      version: "0.3.1",
+      entryPoint: {
+        address: entryPoint07Address,
+        version: "0.7",
+      },
     });
 
     console.log("smart account", account);
     setSmartAccount(account);
+
+    const pimlicoUrl = `https://base-sepolia.g.alchemy.com/v2/TVjz433F1ukidqd2N4XNCj_LXABQGnY7`;
+
+    const pimlicoClient = createPimlicoClient({
+      transport: http(pimlicoUrl),
+      entryPoint: {
+        address: entryPoint07Address,
+        version: "0.7",
+      },
+    });
+
+    const smartAccountClient = createSmartAccountClient({
+      account: account,
+      chain: baseSepolia,
+      bundlerTransport: http(pimlicoUrl),
+      paymaster: pimlicoClient,
+      userOperation: {
+        estimateFeesPerGas: async () => {
+          return (await pimlicoClient.getUserOperationGasPrice()).fast;
+        },
+      },
+    });
+    const txHash = await smartAccountClient.sendTransaction({
+      calls: [
+        {
+          to: "0xd8da6bf26964af9d7eed9e03e53415d37aa96045",
+          value: 0n,
+          data: "0x1234",
+        },
+        {
+          to: "0xd8da6bf26964af9d7eed9e03e53415d37aa96045",
+          value: 0n,
+          data: "0x1234",
+        },
+      ],
+    });
 
     // const smartAccountClient = createSmartAccountClient({
     //   account,
@@ -273,7 +339,7 @@ const Home: NextPage = () => {
     }
 
     const recipient = privateKeyToAccount(generatePrivateKey()).address;
-    const calls = [sendUSDC(recipient, 10000n)]; // $0.01 USDC
+    const calls = [sendUSDC(recipient, 100n)]; // $0.01 USDC
 
     const paymaster = baseSepoliaPaymaster;
     const paymasterData = encodePacked(
@@ -296,7 +362,7 @@ const Home: NextPage = () => {
         })
       ).data!,
     );
-    const pimlicoUrl = `https://api.pimlico.io/v2/84532/rpc?apikey=pim_bX6KsbhcEy33vSXdhx3YsX`;
+    // const pimlicoUrl = `https://api.pimlico.io/v2/84532/rpc?apikey=pim_bX6KsbhcEy33vSXdhx3YsX`;
 
     // const bundlerClient = createPimlicoClient({
     //   transport: http(pimlicoUrl),
@@ -305,24 +371,28 @@ const Home: NextPage = () => {
     //     version: "0.7",
     //   },
     // });
-    const PROXY_RPC_URL = "/api/rpc";
+    // const PROXY_RPC_URL = "/api/rpc";
+
+    const pimlicoUrl = `https://base-sepolia.g.alchemy.com/v2/TVjz433F1ukidqd2N4XNCj_LXABQGnY7`;
 
     const bundlerClient = createBundlerClient({
       client,
-      account: smartAccount as ToCoinbaseSmartAccountReturnType,
-      transport: http(PROXY_RPC_URL),
+      account: smartAccount as ToEcdsaKernelSmartAccountReturnType<"0.7">,
+      transport: http(pimlicoUrl),
     });
 
-    const { standard: fees } = await bundlerClient.request({
-      method: "pimlico_getUserOperationGasPrice",
-    });
+    // const { standard: fees } = await bundlerClient.request({
+    //   method: "pimlico_getUserOperationGasPrice",
+    // });
 
-    const maxFeePerGas = hexToBigInt(fees.maxFeePerGas);
-    const maxPriorityFeePerGas = hexToBigInt(fees.maxPriorityFeePerGas);
+    // console.log("FEES", fees);
 
-    console.log("Max fee per gas:", maxFeePerGas);
-    console.log("Max priority fee per gas:", maxPriorityFeePerGas);
-    console.log("Estimating user op gas limits...");
+    // const maxFeePerGas = hexToBigInt(fees.maxFeePerGas);
+    // const maxPriorityFeePerGas = hexToBigInt(fees.maxPriorityFeePerGas);
+
+    // console.log("Max fee per gas:", maxFeePerGas);
+    // console.log("Max priority fee per gas:", maxPriorityFeePerGas);
+    // console.log("Estimating user op gas limits...");
 
     const {
       callGasLimit,
@@ -331,7 +401,7 @@ const Home: NextPage = () => {
       paymasterPostOpGasLimit,
       paymasterVerificationGasLimit,
     } = await bundlerClient.estimateUserOperationGas({
-      account: smartAccount as ToCoinbaseSmartAccountReturnType,
+      account: smartAccount as ToEcdsaKernelSmartAccountReturnType<"0.7">,
       calls,
       paymaster,
       paymasterData,
@@ -340,16 +410,17 @@ const Home: NextPage = () => {
       // since the bundler will simulate the user op with very high gas limits
       maxFeePerGas: 1n,
       maxPriorityFeePerGas: 1n,
-      entryPointAddress: entryPoint07Address,
     });
     console.log("Call gas limit:", callGasLimit);
     console.log("Pre-verification gas:", preVerificationGas);
     console.log("Verification gas limit:", verificationGasLimit);
 
     console.log("Sending user op...");
+    console.log("paymasterPostOpGasLimit", paymasterPostOpGasLimit);
+    console.log("additionalGasCharge", additionalGasCharge);
 
     const userOpHash = await bundlerClient.sendUserOperation({
-      account: smartAccount as ToCoinbaseSmartAccountReturnType,
+      account: smartAccount as ToEcdsaKernelSmartAccountReturnType<"0.7">,
       calls,
       callGasLimit,
       preVerificationGas,
@@ -359,24 +430,24 @@ const Home: NextPage = () => {
       paymasterVerificationGasLimit: additionalGasCharge,
       // Make sure that `paymasterPostOpGasLimit` is always at least
       // `additionalGasCharge`, regardless of what the bundler estimated.
-      paymasterPostOpGasLimit: Math.max(Number(paymasterPostOpGasLimit), Number(additionalGasCharge)),
-      maxFeePerGas,
-      maxPriorityFeePerGas,
+      paymasterPostOpGasLimit: BigInt(additionalGasCharge),
+      maxFeePerGas: 150000n,
+      maxPriorityFeePerGas: 150000n,
     });
 
     console.log("Submitted user op:", userOpHash);
     console.log("Waiting for execution...");
 
-    // const userOpReceipt = await bundlerClient.waitForUserOperationReceipt({
-    //   hash: userOpHash,
-    // });
+    const userOpReceipt = await bundlerClient.waitForUserOperationReceipt({
+      hash: userOpHash,
+    });
 
-    // console.log("Done! Details:");
-    // console.log("  success:", userOpReceipt.success);
-    // console.log("  actualGasUsed:", userOpReceipt.actualGasUsed);
-    // console.log("  actualGasCost:", formatUnits(userOpReceipt.actualGasCost, 18), "ETH");
-    // console.log("  transaction hash:", userOpReceipt.receipt.transactionHash);
-    // console.log("  transaction gasUsed:", userOpReceipt.receipt.gasUsed);
+    console.log("Done! Details:");
+    console.log("  success:", userOpReceipt.success);
+    console.log("  actualGasUsed:", userOpReceipt.actualGasUsed);
+    console.log("  actualGasCost:", formatUnits(userOpReceipt.actualGasCost, 18), "ETH");
+    console.log("  transaction hash:", userOpReceipt.receipt.transactionHash);
+    console.log("  transaction gasUsed:", userOpReceipt.receipt.gasUsed);
 
     // const usdcBalanceAfter = await usdc.read.balanceOf([smartAccount?.address]);
     // const usdcConsumed = Number(usdcBalance) - Number(usdcBalanceAfter) - 10000; // Exclude what we sent

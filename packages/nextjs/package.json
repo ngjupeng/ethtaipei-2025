@@ -21,6 +21,8 @@
     "@dynamic-labs/sdk-react-core": "^4.10.1",
     "@dynamic-labs/wagmi-connector": "^4.10.1",
     "@heroicons/react": "~2.1.5",
+    "@langchain/anthropic": "^0.3.16",
+    "@langchain/core": "^0.3.43",
     "@particle-network/aa": "^2.0.2",
     "@particle-network/auth-core-modal": "^1.5.2",
     "@particle-network/chains": "^1.8.3",
