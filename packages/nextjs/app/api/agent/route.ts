@@ -16,15 +16,14 @@ const initializeAgent = async () => {
       const actionAgentPersonality = createContextFromJson(constructorAgentConfig);
       const summarizeAgentPersonality = createContextFromJson(summarizeAgentConfig);
 
-      console.log("ANTHROPIC_API_KEY", process.env.ANTHROPIC_API_KEY);
-
+      const anthropicApiKey = process.env.ANTHROPIC_API_KEY;
       // Create the summarize agent
       const summarizeAgent = new SummarizeAgentBrain(
         "1inch AI Assistant",
         summarizeAgentPersonality,
         [],
         "anthropic",
-        "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",
+        anthropicApiKey || "",
         "",
       );
 
@@ -35,7 +34,7 @@ const initializeAgent = async () => {
         [createSwapTool()],
         summarizeAgent,
         "anthropic",
-        "",
+        anthropicApiKey || "",
       );
     } catch (error) {
       console.error("Error initializing agent:", error);
